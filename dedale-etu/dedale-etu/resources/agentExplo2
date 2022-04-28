@@ -1,0 +1,4 @@
+mapname:map2018MultiTypes
+agentExplo:Explo1:1:free:10:10:0:1:1
+agentExplo:Explo2:1:free:50:50:0:1:1
+agentExplo:Explo3:1:free:100:100:0:1:1
