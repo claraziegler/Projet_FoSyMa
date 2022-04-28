@@ -1,0 +1,16 @@
+{ 
+	"protocolName": "ReverseJapaneseAuction", 
+	"Auctioneer" : {  "agentName": "1stAgent", 
+				      "objectId" : "object2",
+                      "initPrice": 100, 
+                      "decrement" : 3,
+					  "waitingTime" :300
+                       } , 
+	"Bidders" :	     [{  "agentName": "2ndAgent",
+                         "reservePrice": 50
+                         } ,
+			            {  "agentName": "3rdAgent",
+						    "reservePrice": 25
+	                     } 
+                        ] 
+}

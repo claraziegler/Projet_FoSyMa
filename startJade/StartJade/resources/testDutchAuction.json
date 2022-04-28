@@ -1,0 +1,17 @@
+{ 
+	"protocolName": "DutchAuction", 
+	"Auctioneer" : {  "agentName": "1stAgent", 
+						 "objectId" : "object2",
+						"initPrice": 100, 
+                        "decrement" : 3,
+					    "reservePrice" : 30,
+						"waitingPeriod" :300
+                       } , 
+     "Bidders"	 :  [{  "agentName": "2ndAgent",
+                         "budget": 50
+                         } ,
+			            {  "agentName": "3rdAgent",
+							"budget": 60
+                       } 
+                        ] 
+}

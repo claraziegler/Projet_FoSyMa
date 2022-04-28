@@ -1,0 +1,16 @@
+{ 
+	"protocolName": "LNS", 
+	"Agents" : [{  "agentName": "1stAgent", 
+				  "secret" : "A",
+				  "neighbours" : ["2ndAgent", "3rdAgent"]	
+                       } , 
+                {  "agentName": "2ndAgent", 
+				  "secret" : "B",
+				  "neighbours" : ["1stAgent", "3rdAgent"]	
+                       } , 
+                { "agentName": "3rdAgent", 
+				  "secret" : "C",
+				  "neighbours" : ["1stAgent", "2ndAgent"]	
+                       }                       
+                       ]
+}

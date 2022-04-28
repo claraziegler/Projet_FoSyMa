@@ -1,0 +1,24 @@
+
+{ 
+	"protocolName": "PushSum", 
+	"Ticker" : {  "agentName": "1stAgent", 
+						 "nbRounds" : 3
+                       
+                       } , 
+     "PushSum" :         [{  "agentName": "2ndAgent",
+                         "neighbors": ["3rdAgent","4thAgent" ],
+                         "value": 75
+                         } ,
+			            {  "agentName": "3rdAgent",
+                          "neighbors": ["2ndAgent","4thAgent"],
+                         "value": 75
+                       } ,
+                                   {  "agentName": "4thAgent",
+                          "neighbors": ["2ndAgent","3rdAgent"],
+                         "value": 75
+                       } 
+                       ]
+}
+
+
+

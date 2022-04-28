@@ -1,0 +1,92 @@
+{
+	"protocolName": "BasicPaxos",
+	"Client": [
+		{
+			"agentName": "Client0",
+			"nameProposer": "Proposer1",
+			"value": "val1",
+			"topic": "topic"
+		}
+	],
+	"Learner": [
+		{
+			"agentName": "Learner0"
+		},
+		{
+			"agentName": "Learner1"
+		}
+	],
+	"Acceptor": [
+		{
+			"agentName": "Acceptor0"
+		}
+	],
+	"Proposer": [
+		{
+			"agentName": "Proposer0",
+			"namesAcceptors": [
+				"Acceptor0"
+			],
+			"namesLearners": [
+				"Learner0",
+				"Learner1"
+			]
+		},
+		{
+			"agentName": "Proposer1",
+			"namesAcceptors": [
+				"Acceptor0"
+			],
+			"namesLearners": [
+				"Learner0",
+				"Learner1"
+			]
+		}
+	],
+	"MultiRole": [
+		{
+			"agentName": "MultiRole0",
+			"nameProposer": "Proposer1",
+			"namesAcceptors": [
+				"MultiRole0",
+				"MultiRole1",
+				"Acceptor0"
+			],
+			"namesLearners": [
+				"MultiRole0",
+				"MultiRole1",
+				"Learner0"
+			],
+			"value": "val1",
+			"topic": "topic",
+			"roles": [
+				"Client",
+				"Proposer",
+				"Learner",
+				"Acceptor"
+			]
+		},
+		{
+			"agentName": "MultiRole1",
+			"nameProposer": "MultiRole0",
+			"namesAcceptors": [
+				"MultiRole0",
+				"MultiRole1",
+				"Acceptor0"
+			],
+			"namesLearners": [
+				"MultiRole0",
+				"MultiRole1",
+				"Learner0"
+			],
+			"value": "val2",
+			"topic": "topic",
+			"roles": [
+				"Client",
+				"Proposer",
+				"Learner",
+				"Acceptor"
+			]
+		}
+	]
+}
