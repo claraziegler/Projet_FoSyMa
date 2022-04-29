@@ -4,7 +4,8 @@ import java.io.IOException;
 import java.util.List;
 
 import dataStructures.serializableGraph.SerializableSimpleGraph;
-
+import dataStructures.tuple.Couple;
+import eu.su.mas.dedale.env.Observation;
 import eu.su.mas.dedale.mas.AbstractDedaleAgent;
 import eu.su.mas.dedaleEtu.mas.agents.dummies.explo.ExploreCoopAgent;
 import eu.su.mas.dedaleEtu.mas.knowledge.MapRepresentation;
@@ -64,11 +65,30 @@ public class CollectBehaviour extends SimpleBehaviour {
 				String type = ((ExploreCoopAgent) myAgent).selectionnerType();
 				this.objectif = ((ExploreCoopAgent) myAgent).choisirTresor(type);
 			}
-			 
+			
 		}
 		System.out.println(this.myAgent.getName()+" objectif : "+this.objectif);
 		String myPosition=((AbstractDedaleAgent)this.myAgent).getCurrentPosition();
 		if(myPosition.equals(this.objectif)) {
+			List<Couple<String,List<Couple<Observation,Integer>>>> lobs=((AbstractDedaleAgent)this.myAgent).observe();//myPosition
+			List<Couple<Observation,Integer>> lObservations= lobs.get(0).getRight();
+			System.out.println(lObservations);
+			((AbstractDedaleAgent) this.myAgent).openLock(lObservations.get(0).getLeft());
+			
+			/*
+			if (((AbstractDedaleAgent) myAgent).getMyTreasureType().equals("Gold")) {
+				((AbstractDedaleAgent) this.myAgent).openLock(Observation.GOLD);
+			}
+			else if (((AbstractDedaleAgent) myAgent).getMyTreasureType().equals("Diamond")){
+				((AbstractDedaleAgent) this.myAgent).openLock(Observation.DIAMOND);
+			}
+			else {
+				 
+			}*/
+			
+			int picked = ((AbstractDedaleAgent) this.myAgent).pick();
+			System.out.println("PIIIIIIIIIICK !!!!!!!");
+			((ExploreCoopAgent) this.myAgent).mise_a_jour(lObservations.get(0).getLeft(),myPosition,picked);
 			this.objectif = null;
 		}
 		else {

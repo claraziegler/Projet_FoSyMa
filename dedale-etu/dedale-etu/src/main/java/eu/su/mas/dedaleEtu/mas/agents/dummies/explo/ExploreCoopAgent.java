@@ -60,6 +60,38 @@ public class ExploreCoopAgent extends AbstractDedaleAgent {
 	 *          
 	 */
 	
+	public void mise_a_jour(Observation type_tresor, String position, int valeur) {
+		System.out.println("type tresor : "+type_tresor);
+		if (type_tresor==Observation.GOLD) {
+			System.out.println("MISE A JOUR GOOOLD");
+			for (int i=0;i<this.pos_gold.size();i++) {
+				if (pos_gold.get(i).equals(position)) {
+					int qte = this.qte_gold.get(i)-valeur;
+					this.qte_gold.set(i, qte);
+					/*
+					if (qte==0) {
+						pos_gold.remove(i);
+						qte_gold.remove(i);
+					}*/
+				}
+			}
+		}
+		
+		if (type_tresor==Observation.DIAMOND) {
+			for (int i=0;i<this.pos_diamond.size();i++) {
+				if (pos_diamond.get(i).equals(position)) {
+					int qte = this.qte_diamond.get(i)-valeur;
+					this.qte_diamond.set(i, qte);
+					/*
+					if (qte==0) {
+						pos_diamond.remove(i);
+						qte_diamond.remove(i);
+					}*/
+				}
+			}
+		}
+	}
+	
 	public String selectionnerTresorAlea(String type_tresor) {
 		Random rand = new Random();
 		if (type_tresor.equals("or")) {
@@ -99,13 +131,14 @@ public class ExploreCoopAgent extends AbstractDedaleAgent {
 	public String choisirTresor(String type) {
 		int place_dispo = getBackPackFreeSpace().get(0).getRight();
 		//int place_dispo = ((AbstractDedaleAgent) this).ec.getGoldCapacity();
+		System.out.println(getBackPackFreeSpace());
 		String tresor = "";
 		int valeur = 0;
 		
 		if (type.equals("or")) {
 			for (int i=0;i<pos_gold.size();i++) {
 				int v = qte_gold.get(i);
-				if (v>valeur && v<=place_dispo) {
+				if (v>valeur && v<=place_dispo && v>0) {
 					valeur = v;
 					tresor = pos_gold.get(i);
 				}
@@ -114,7 +147,7 @@ public class ExploreCoopAgent extends AbstractDedaleAgent {
 				valeur = Integer.MAX_VALUE;
 				for (int i=0;i<pos_gold.size();i++) {
 					int v = qte_gold.get(i);
-					if (v<valeur) {
+					if (v<valeur && v>0) {
 						valeur = v;
 						tresor = pos_gold.get(i);	
 					}
@@ -125,7 +158,7 @@ public class ExploreCoopAgent extends AbstractDedaleAgent {
 		if (type.equals("diamant")) {
 			for (int i=0;i<pos_diamond.size();i++) {
 				int v = qte_diamond.get(i);
-				if (v>valeur && v<=place_dispo) {
+				if (v>valeur && v<=place_dispo && v>0) {
 					valeur = v;
 					tresor = pos_diamond.get(i);	
 				}
@@ -135,7 +168,7 @@ public class ExploreCoopAgent extends AbstractDedaleAgent {
 				valeur = Integer.MAX_VALUE;
 				for (int i=0;i<pos_diamond.size();i++) {
 					int v = qte_diamond.get(i);
-					if (v<valeur) {
+					if (v<valeur && v>0) {
 						valeur = v;
 						tresor = pos_diamond.get(i);	
 					}
@@ -143,14 +176,19 @@ public class ExploreCoopAgent extends AbstractDedaleAgent {
 			}
 		}
 		System.out.println(this.getName()+" capactité: "+ place_dispo +" tresor: "+tresor+" valeur: "+valeur);
+		print_or();
+		print_diamant();
 		return tresor;
 	}
 	
 	public void ajouter_or(String position, Integer valeur) {
 		Boolean ajouter = true;
-		for (String i:pos_gold) {
-			if (i.equals(position)) {
+		for (int i=0;i<pos_gold.size();i++) {
+			if (pos_gold.get(i).equals(position)) {
 				ajouter = false;
+				if (qte_gold.get(i)>valeur) {
+					qte_gold.set(i,valeur);
+				}
 				break;
 			}
 		}
@@ -164,9 +202,12 @@ public class ExploreCoopAgent extends AbstractDedaleAgent {
 	public void ajouter_diamant(String position, Integer valeur) {
 		
 		Boolean ajouter = true;
-		for (String i:pos_diamond) {
-			if (i.equals(position)) {
+		for (int i=0;i<pos_diamond.size();i++) {
+			if (pos_diamond.get(i).equals(position)) {
 				ajouter = false;
+				if (qte_diamond.get(i)>valeur) {
+					qte_diamond.set(i,valeur);
+				}
 				break;
 			}
 		}
