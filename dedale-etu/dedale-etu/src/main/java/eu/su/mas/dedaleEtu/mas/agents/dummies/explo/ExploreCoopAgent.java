@@ -50,6 +50,8 @@ public class ExploreCoopAgent extends AbstractDedaleAgent {
 	private List<String> pos_diamond;
 	private List<Integer> qte_gold;
 	private List<Integer> qte_diamond;
+	private List<Long> time_gold;
+	private List<Long> time_diamond;
 	
 
 	/**
@@ -60,34 +62,54 @@ public class ExploreCoopAgent extends AbstractDedaleAgent {
 	 *          
 	 */
 	
-	public void mise_a_jour(Observation type_tresor, String position, int valeur) {
-		System.out.println("type tresor : "+type_tresor);
+	public String quel_tresor(String position) {
+		
+		for (int i=0;i<this.pos_gold.size();i++) {
+			if (pos_gold.get(i).equals(position)) {
+				return "or";
+			}
+		}
+		for (int i=0;i<this.pos_diamond.size();i++) {
+			if (pos_diamond.get(i).equals(position)) {
+				return "diamant";
+			}
+		}
+		return null;
+	}
+	
+	public void mise_a_jour(Observation type_tresor, String position, int valeur, long time) {
+		
 		if (type_tresor==Observation.GOLD) {
-			System.out.println("MISE A JOUR GOOOLD");
+			boolean changer=false;
 			for (int i=0;i<this.pos_gold.size();i++) {
 				if (pos_gold.get(i).equals(position)) {
-					int qte = this.qte_gold.get(i)-valeur;
+					changer=true;
+					//int qte = this.qte_gold.get(i)-valeur;
+					int qte = valeur;
 					this.qte_gold.set(i, qte);
-					/*
-					if (qte==0) {
-						pos_gold.remove(i);
-						qte_gold.remove(i);
-					}*/
+					this.time_gold.set(i, time);
+					
 				}
+			}
+			if (changer==false) {
+				ajouter_or(position, valeur,time);
 			}
 		}
 		
 		if (type_tresor==Observation.DIAMOND) {
+			boolean changer=false;
 			for (int i=0;i<this.pos_diamond.size();i++) {
 				if (pos_diamond.get(i).equals(position)) {
-					int qte = this.qte_diamond.get(i)-valeur;
+					changer=true;
+					//int qte = this.qte_diamond.get(i)-valeur;
+					int qte = valeur;
 					this.qte_diamond.set(i, qte);
-					/*
-					if (qte==0) {
-						pos_diamond.remove(i);
-						qte_diamond.remove(i);
-					}*/
+					this.time_diamond.set(i, time);
+					
 				}
+			}
+			if (changer==false) {
+				ajouter_diamant(position, valeur, time);
 			}
 		}
 	}
@@ -115,8 +137,10 @@ public class ExploreCoopAgent extends AbstractDedaleAgent {
 		for (int i: this.qte_diamond) {
 			qte_diam = qte_diam + i;
 		}
-
-		float pourcentage = qte_or/qte_or+qte_diam;
+		float pourcentage = 0.5f;
+		if (qte_or+qte_diam!=0) {
+			pourcentage = qte_or/qte_or+qte_diam;
+		}
 		double rand = Math.random();
 		if (rand<pourcentage) {
 			type = "or";
@@ -130,9 +154,7 @@ public class ExploreCoopAgent extends AbstractDedaleAgent {
 	
 	public String choisirTresor(String type) {
 		int place_dispo = getBackPackFreeSpace().get(0).getRight();
-		//int place_dispo = ((AbstractDedaleAgent) this).ec.getGoldCapacity();
-		System.out.println(getBackPackFreeSpace());
-		String tresor = "";
+		String tresor = null;
 		int valeur = 0;
 		
 		if (type.equals("or")) {
@@ -143,7 +165,7 @@ public class ExploreCoopAgent extends AbstractDedaleAgent {
 					tresor = pos_gold.get(i);
 				}
 			}
-			if (tresor.equals("")) {
+			if (tresor==null) {
 				valeur = Integer.MAX_VALUE;
 				for (int i=0;i<pos_gold.size();i++) {
 					int v = qte_gold.get(i);
@@ -164,7 +186,7 @@ public class ExploreCoopAgent extends AbstractDedaleAgent {
 				}
 			}
 			
-			if (tresor.equals("")) {
+			if (tresor==null) {
 				valeur = Integer.MAX_VALUE;
 				for (int i=0;i<pos_diamond.size();i++) {
 					int v = qte_diamond.get(i);
@@ -181,13 +203,14 @@ public class ExploreCoopAgent extends AbstractDedaleAgent {
 		return tresor;
 	}
 	
-	public void ajouter_or(String position, Integer valeur) {
+	public void ajouter_or(String position, Integer valeur, long time) {
 		Boolean ajouter = true;
 		for (int i=0;i<pos_gold.size();i++) {
 			if (pos_gold.get(i).equals(position)) {
 				ajouter = false;
-				if (qte_gold.get(i)>valeur) {
+				if (time_gold.get(i)<time) {
 					qte_gold.set(i,valeur);
+					time_gold.set(i, time);
 				}
 				break;
 			}
@@ -196,17 +219,19 @@ public class ExploreCoopAgent extends AbstractDedaleAgent {
 			/*System.out.println(this.getName() + " : ajout or : " + position + " : " + valeur);*/
 			pos_gold.add(position);
 			qte_gold.add(valeur);
+			time_gold.add(time);
 		}
 	}
 	
-	public void ajouter_diamant(String position, Integer valeur) {
+	public void ajouter_diamant(String position, Integer valeur, long time) {
 		
 		Boolean ajouter = true;
 		for (int i=0;i<pos_diamond.size();i++) {
 			if (pos_diamond.get(i).equals(position)) {
 				ajouter = false;
-				if (qte_diamond.get(i)>valeur) {
+				if (time_diamond.get(i)<time) {
 					qte_diamond.set(i,valeur);
+					time_diamond.set(i, time);
 				}
 				break;
 			}
@@ -214,6 +239,7 @@ public class ExploreCoopAgent extends AbstractDedaleAgent {
 		if (ajouter) {
 			pos_diamond.add(position);
 			qte_diamond.add(valeur);
+			time_diamond.add(time);
 		}
 	}
 	
@@ -225,7 +251,7 @@ public class ExploreCoopAgent extends AbstractDedaleAgent {
 	}
 	
 	public void print_diamant() {
-		System.out.println("Positions et quantite des tresors diamant:");
+		System.out.println(this.getName()+" : Positions et quantite des tresors diamant:");
 		for (int i=0;i<pos_diamond.size();i++) {
 			System.out.println(pos_diamond.get(i)+" : "+qte_diamond.get(i));
 		}
@@ -235,10 +261,10 @@ public class ExploreCoopAgent extends AbstractDedaleAgent {
 		String chaine = "";
 		print_or();
 		for (int i=0;i<pos_gold.size();i++) {
-			chaine = chaine + "or,"+pos_gold.get(i)+","+qte_gold.get(i)+";";
+			chaine = chaine + "or,"+pos_gold.get(i)+","+qte_gold.get(i)+","+time_gold.get(i)+";";
 		}
 		for (int i=0;i<pos_diamond.size();i++) {
-			chaine = chaine + "dia,"+pos_diamond.get(i)+","+qte_diamond.get(i)+";";
+			chaine = chaine + "dia,"+pos_diamond.get(i)+","+qte_diamond.get(i)+","+time_diamond.get(i)+";";
 		}
 		
 		return chaine;
@@ -246,20 +272,20 @@ public class ExploreCoopAgent extends AbstractDedaleAgent {
 	
 	public void deserialize(String chaine) {
 		String[] listchaine = chaine.split(";");
-		System.out.println(chaine);
+		//System.out.println(chaine);
 		for (int i=0;i<listchaine.length;i++) {
 			String[] elem = listchaine[i].split(",");
-			//ArrayList<String> elem2 = new ArrayList<String>(Arrays.asList(elem));
 			if (elem[0].equals("or")) {
-				//System.out.println("Deserialize elem= "+elem2.get(0)+","+elem2.get(1)+","+elem2.get(2));
-				ajouter_or(elem[1], Integer.parseInt(elem[2]));
+				ajouter_or(elem[1], Integer.parseInt(elem[2]), Long.parseLong(elem[3]));
 				
 			}
 			if (elem[0].equals("dia")) {
-				ajouter_diamant(elem[1], Integer.parseInt(elem[2]));
+				ajouter_diamant(elem[1], Integer.parseInt(elem[2]), Long.parseLong(elem[3]));
 			}
 				
 		}
+		print_or();
+		print_diamant();
 		
 	}
 	
@@ -270,6 +296,8 @@ public class ExploreCoopAgent extends AbstractDedaleAgent {
 		pos_diamond = new ArrayList<String>();
 		qte_gold = new ArrayList<Integer>();
 		qte_diamond = new ArrayList<Integer>();
+		time_gold = new ArrayList<Long>();
+		time_diamond = new ArrayList<Long>();
 		
 		//get the parameters added to the agent at creation (if any)
 		final Object[] args = getArguments();
@@ -294,21 +322,11 @@ public class ExploreCoopAgent extends AbstractDedaleAgent {
 		 * ADD the behaviours of the Dummy Moving Agent
 		 * 
 		 ************************************************/
-		String A = "A";
-		String B = "B";
-		/*
-		FSMBehaviour fsm = new FSMBehaviour(this);
-		fsm.registerFirstState(new ExploCoopBehaviour(this,this.myMap,list_agentNames),A);
-		fsm.registerState(new PartageMapBehaviour(this,this.myMap,this.agent_communication),B);
-		//fsm.registerState(new ShareMapBehaviour(this,100,this.myMap,list_agentNames),B);
 		
-		fsm.registerDefaultTransition(B,A);
-		fsm.registerTransition(A,B,1);
-		*/
 				
 		
-		lb.add(new ExploCoopBehaviour(this,this.myMap,list_agentNames));
-		//lb.add(fsm);
+		lb.add(new ExploCoopBehaviour(this,this.myMap,list_agentNames,null,System.currentTimeMillis()));
+		
 		
 		
 		/***

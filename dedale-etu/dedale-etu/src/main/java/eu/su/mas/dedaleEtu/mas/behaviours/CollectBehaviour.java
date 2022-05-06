@@ -2,7 +2,10 @@ package eu.su.mas.dedaleEtu.mas.behaviours;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Random;
+import java.util.Set;
 
+import dataStructures.serializableGraph.SerializableNode;
 import dataStructures.serializableGraph.SerializableSimpleGraph;
 import dataStructures.tuple.Couple;
 import eu.su.mas.dedale.env.Observation;
@@ -27,12 +30,12 @@ public class CollectBehaviour extends SimpleBehaviour {
 	private int cpt;
 	private List<String> agentNames;
 	private String objectif;
-	
+	private long date;
 	private boolean finished = false;
 	
 
 	
-	public CollectBehaviour(ExploreCoopAgent myAgent,MapRepresentation mymap,List<String> agentNames,String objectif) {
+	public CollectBehaviour(ExploreCoopAgent myAgent,MapRepresentation mymap,List<String> agentNames,String objectif,long debut) {
 		super();
 		this.myMap=mymap;
 		//this.receivers=receivers;	
@@ -40,6 +43,7 @@ public class CollectBehaviour extends SimpleBehaviour {
 		this.agentNames = agentNames;
 		this.objectif = objectif;
 		System.out.println("Debut collecte behaviour : "+myAgent.getName());
+		this.date = debut;
 		
 	}
 
@@ -55,56 +59,150 @@ public class CollectBehaviour extends SimpleBehaviour {
 	public void action() {
 		
 		if (this.objectif == null) {
-			if (((AbstractDedaleAgent) myAgent).getMyTreasureType().equals("Gold")) {
-				this.objectif = ((ExploreCoopAgent) myAgent).choisirTresor("or");
+			
+			if (((AbstractDedaleAgent) this.myAgent).getBackPackFreeSpace().get(0).getRight()==0) {
+				SerializableSimpleGraph<String, MapAttribute> sg=this.myMap.getSerializableGraph();
+				Set<SerializableNode<String, MapAttribute>> nodes = sg.getAllNodes();
+				
+				Random r= new Random();
+				int moveId=r.nextInt(nodes.size());
+				int i = 0;
+				for (SerializableNode<String, MapAttribute> n: nodes) {
+					if (i==moveId) {
+						System.out.println("Sac à dos plein, noeud aleatoire choisi par"+this.myAgent.getName() +" : "+n.getNodeId());
+						this.objectif = n.getNodeId();
+						break;
+					}
+					i++;
+				}
 			}
-			else if (((AbstractDedaleAgent) myAgent).getMyTreasureType().equals("Diamond")){
-				this.objectif = ((ExploreCoopAgent) myAgent).choisirTresor("diamant");
-			}
+			
 			else {
-				String type = ((ExploreCoopAgent) myAgent).selectionnerType();
-				this.objectif = ((ExploreCoopAgent) myAgent).choisirTresor(type);
+				if (((AbstractDedaleAgent) myAgent).getMyTreasureType().equals("Gold")) {
+					this.objectif = ((ExploreCoopAgent) myAgent).choisirTresor("or");
+				}
+				else if (((AbstractDedaleAgent) myAgent).getMyTreasureType().equals("Diamond")){
+					this.objectif = ((ExploreCoopAgent) myAgent).choisirTresor("diamant");
+				}
+				else {
+					if (this.myMap.hasOpenNode()) {
+						Random r = new Random();
+						int nb = r.nextInt(9);
+						if (nb<5) {
+							this.objectif = ((ExploreCoopAgent) myAgent).choisirTresor("or");
+						}
+						else {
+							this.objectif = ((ExploreCoopAgent) myAgent).choisirTresor("diamant");
+						}
+					}
+					else {
+						String type = ((ExploreCoopAgent) myAgent).selectionnerType();
+						this.objectif = ((ExploreCoopAgent) myAgent).choisirTresor(type);
+					}
+					
+				}
 			}
+			
+			if (this.objectif==null) {
+				SerializableSimpleGraph<String, MapAttribute> sg=this.myMap.getSerializableGraph();
+				Set<SerializableNode<String, MapAttribute>> nodes = sg.getAllNodes();
+				
+				Random r= new Random();
+				int moveId=r.nextInt(nodes.size());
+				int i = 0;
+				for (SerializableNode<String, MapAttribute> n: nodes) {
+					if (i==moveId) {
+						System.out.println("Interblocage,noeud aleatoire choisi par "+this.myAgent.getName()+": "+n.getNodeId());
+						this.objectif = n.getNodeId();
+						break;
+					}
+					i++;
+				}
+			}
+			
 			
 		}
+		
+		
 		System.out.println(this.myAgent.getName()+" objectif : "+this.objectif);
+		
 		String myPosition=((AbstractDedaleAgent)this.myAgent).getCurrentPosition();
+		
+		List<Couple<String,List<Couple<Observation,Integer>>>> lobs=((AbstractDedaleAgent)this.myAgent).observe();//myPosition
+		List<Couple<Observation,Integer>> lObservations= lobs.get(0).getRight();
+		boolean stench = false;
+		//for(Couple<Observation,Integer> o:lObservations){
+		if (lObservations.isEmpty()==false) {
+			switch (lObservations.get(0).getLeft()) {
+			case DIAMOND:
+				 ((ExploreCoopAgent) myAgent).mise_a_jour(lObservations.get(0).getLeft(),myPosition,lObservations.get(0).getRight(),System.currentTimeMillis());
+				break;
+			case GOLD:
+				((ExploreCoopAgent) myAgent).mise_a_jour(lObservations.get(0).getLeft(),myPosition,lObservations.get(0).getRight(),System.currentTimeMillis());
+				break;
+			case STENCH:
+				stench = true;
+				break;
+			case LOCKSTATUS:
+				if (((ExploreCoopAgent) this.myAgent).quel_tresor(myPosition).equals("or")) {
+					((ExploreCoopAgent) myAgent).mise_a_jour(Observation.GOLD,myPosition,0,System.currentTimeMillis());
+				}
+				if (((ExploreCoopAgent) this.myAgent).quel_tresor(myPosition).equals("diamant")) {
+					((ExploreCoopAgent) myAgent).mise_a_jour(Observation.DIAMOND,myPosition,0,System.currentTimeMillis());
+				}
+				break;
+			default:
+				break;
+			}
+		}
+		
+		
+		
 		if(myPosition.equals(this.objectif)) {
-			List<Couple<String,List<Couple<Observation,Integer>>>> lobs=((AbstractDedaleAgent)this.myAgent).observe();//myPosition
-			List<Couple<Observation,Integer>> lObservations= lobs.get(0).getRight();
-			System.out.println(lObservations);
-			((AbstractDedaleAgent) this.myAgent).openLock(lObservations.get(0).getLeft());
+			//System.out.println(lObservations);
 			
-			/*
-			if (((AbstractDedaleAgent) myAgent).getMyTreasureType().equals("Gold")) {
-				((AbstractDedaleAgent) this.myAgent).openLock(Observation.GOLD);
-			}
-			else if (((AbstractDedaleAgent) myAgent).getMyTreasureType().equals("Diamond")){
-				((AbstractDedaleAgent) this.myAgent).openLock(Observation.DIAMOND);
-			}
-			else {
-				 
-			}*/
+			if (lObservations.isEmpty()==false) {
+				if (stench==false) {
+					((AbstractDedaleAgent) this.myAgent).openLock(lObservations.get(0).getLeft());
+				
+					int picked = ((AbstractDedaleAgent) this.myAgent).pick();
+					System.out.println(this.myAgent.getName()+" a ramassé "+picked+" "+lObservations.get(0).getLeft()+" sur la case "+ myPosition);
+					((ExploreCoopAgent) this.myAgent).mise_a_jour(lObservations.get(0).getLeft(),myPosition,lObservations.get(0).getRight()-picked,System.currentTimeMillis());
 			
-			int picked = ((AbstractDedaleAgent) this.myAgent).pick();
-			System.out.println("PIIIIIIIIIICK !!!!!!!");
-			((ExploreCoopAgent) this.myAgent).mise_a_jour(lObservations.get(0).getLeft(),myPosition,picked);
+				}
+			}
 			this.objectif = null;
 		}
 		else {
 			String nextNode=null;
 			nextNode=this.myMap.getShortestPath(myPosition,objectif).get(0);
-			((AbstractDedaleAgent)this.myAgent).moveTo(nextNode);
+			int cpt = 0;
+			while (((AbstractDedaleAgent)this.myAgent).moveTo(nextNode)==false && cpt<2) {
+				this.myAgent.doWait(500);
+				cpt++;
+			}
+			if (cpt==2) {
+				SerializableSimpleGraph<String, MapAttribute> sg=this.myMap.getSerializableGraph();
+				Set<SerializableNode<String, MapAttribute>> nodes = sg.getAllNodes();
+				
+				Random r= new Random();
+				int moveId=r.nextInt(nodes.size());
+				int i = 0;
+				for (SerializableNode<String, MapAttribute> n: nodes) {
+					if (i==moveId) {
+						System.out.println(this.myAgent.getName()+" Interblocage, noeud aleatoire choisi : "+n.getNodeId());
+						this.objectif = n.getNodeId();
+						break;
+					}
+					i++;
+				}
+			}
 		}
 		//System.out.println(this.myAgent.getName()+" objectif : "+this.objectif);
 		ACLMessage msg1 = new ACLMessage(ACLMessage.INFORM);
 		msg1.setProtocol("REPERAGE");
 		msg1.setSender(this.myAgent.getAID());
-		/*if (this.myAgent.getLocalName().equals("Explo1")) {
-			msg1.addReceiver(new AID("Explo2",false));
-		}else {
-			msg1.addReceiver(new AID("Explo1",false));
-		}*/
+	
 		for (String agentName : this.agentNames) {
 			if (agentName!=this.myAgent.getLocalName()) {
 				msg1.addReceiver(new AID(agentName,AID.ISLOCALNAME));
@@ -122,11 +220,7 @@ public class CollectBehaviour extends SimpleBehaviour {
 			ACLMessage msg2 = new ACLMessage(ACLMessage.INFORM);
 			msg2.setProtocol("REPERAGE");
 			msg2.setSender(this.myAgent.getAID());
-			/*if (this.myAgent.getLocalName().equals("Explo1")) {
-				msg2.addReceiver(new AID("Explo2",false));
-			}else {
-				msg2.addReceiver(new AID("Explo1",false));
-			}*/
+			
 			for (String agentName : this.agentNames) {
 				if (agentName!=this.myAgent.getLocalName()) {
 					msg2.addReceiver(new AID(agentName,AID.ISLOCALNAME));
@@ -136,11 +230,16 @@ public class CollectBehaviour extends SimpleBehaviour {
 			((AbstractDedaleAgent)this.myAgent).sendMessage(msg2);
 			
 			System.out.println(this.myAgent.getLocalName() + ": " + msgReceived1.getContent() + " par " + msgReceived1.getSender().getLocalName());
-			this.myAgent.addBehaviour(new PartageMapCollectBehaviour((ExploreCoopAgent) this.myAgent,this.myMap,msgReceived1.getSender(),this.agentNames,this.objectif));
-			//this.myAgent.addBehaviour(new ShareMapBehaviour(this.myAgent,500,this.myMap,this.list_agentNames));
-			System.out.println("Behaviour ajouté");
+			this.myAgent.addBehaviour(new PartageMapCollectBehaviour((ExploreCoopAgent) this.myAgent,this.myMap,msgReceived1.getSender(),this.agentNames,this.objectif,this.date));
+			
 			finished = true;
 			
+		}
+		
+		if (System.currentTimeMillis()-this.date>45000) {
+			finished =true;
+			this.myAgent.addBehaviour(new ExploCoopBehaviour((ExploreCoopAgent) this.myAgent,this.myMap,this.agentNames,null,System.currentTimeMillis()));
+			System.out.println(this.myAgent.getLocalName()+" - Collecte arrêtée temporairement");
 		}
 	}
 

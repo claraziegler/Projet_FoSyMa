@@ -1,6 +1,7 @@
 package eu.su.mas.dedaleEtu.mas.behaviours;
 
 import java.io.IOException;
+import java.sql.Date;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -54,9 +55,10 @@ public class ExploCoopBehaviour extends SimpleBehaviour {
 
 	private List<String> list_agentNames;
 	
-	//private AID agent_communication;
 	
-	private int exitValue;
+	private String objectif;
+	
+	private long date;
 
 /**
  * 
@@ -64,18 +66,18 @@ public class ExploCoopBehaviour extends SimpleBehaviour {
  * @param myMap known map of the world the agent is living in
  * @param agentNames name of the agents to share the map with
  */
-	public ExploCoopBehaviour(ExploreCoopAgent myagent, MapRepresentation myMap,List<String> agentNames) {
+	public ExploCoopBehaviour(ExploreCoopAgent myagent, MapRepresentation myMap,List<String> agentNames,String objectif, long debut) {
 		super(myagent);
 		this.myMap=myMap;
 		this.list_agentNames=agentNames;
-		//this.agent_communication = agent_communication;
-		
-		
+		this.objectif = objectif;
+		this.date = debut;
+		System.out.println("Début de l'exploration de "+myagent.getName());
 	}
 
 	@Override
 	public void action() {
-
+		
 		if(this.myMap==null) {
 			this.myMap= new MapRepresentation();
 			//this.myAgent.addBehaviour(new ShareMapBehaviour(this.myAgent,500,this.myMap,this.list_agentNames));
@@ -85,6 +87,9 @@ public class ExploCoopBehaviour extends SimpleBehaviour {
 		String myPosition=((AbstractDedaleAgent)this.myAgent).getCurrentPosition();
 
 		if (myPosition!=null){
+			if (myPosition.equals(this.objectif)) {
+				this.objectif=null;
+			}
 			//List of observable from the agent's current position
 			List<Couple<String,List<Couple<Observation,Integer>>>> lobs=((AbstractDedaleAgent)this.myAgent).observe();//myPosition
 
@@ -102,10 +107,10 @@ public class ExploCoopBehaviour extends SimpleBehaviour {
 			for(Couple<Observation,Integer> o:lObservations){
 				switch (o.getLeft()) {
 				case DIAMOND:
-					 ((ExploreCoopAgent) myAgent).ajouter_diamant(myPosition,o.getRight());
+					 ((ExploreCoopAgent) myAgent).ajouter_diamant(myPosition,o.getRight(),System.currentTimeMillis());
 					break;
 				case GOLD:
-					((ExploreCoopAgent) myAgent).ajouter_or(myPosition,o.getRight());
+					((ExploreCoopAgent) myAgent).ajouter_or(myPosition,o.getRight(),System.currentTimeMillis());
 					break;
 				default:
 					break;
@@ -127,6 +132,11 @@ public class ExploCoopBehaviour extends SimpleBehaviour {
 					if (nextNode==null && isNewNode) nextNode=nodeId;
 				}
 			}
+			
+			if (this.objectif!=null) {
+				//System.out.println(this.myAgent.getName()+" Objectif : "+this.objectif);
+				nextNode = this.myMap.getShortestPath(myPosition,this.objectif).get(0);
+			}
 
 			//3) while openNodes is not empty, continues.
 			if (!this.myMap.hasOpenNode()){
@@ -134,8 +144,7 @@ public class ExploCoopBehaviour extends SimpleBehaviour {
 				finished=true;
 				((ExploreCoopAgent) myAgent).print_or();
 				((ExploreCoopAgent) myAgent).print_diamant();
-				//this.myAgent.addBehaviour(new ShareMapBehaviour(this.myAgent,500,this.myMap,this.list_agentNames));
-				this.myAgent.addBehaviour(new CollectBehaviour((ExploreCoopAgent) this.myAgent,this.myMap,this.list_agentNames,null));
+				this.myAgent.addBehaviour(new CollectBehaviour((ExploreCoopAgent) this.myAgent,this.myMap,this.list_agentNames,null,System.currentTimeMillis()));
 				System.out.println(this.myAgent.getLocalName()+" - Exploration successufully done, behaviour removed.");
 			}else{
 				//4) select next move.
@@ -151,17 +160,26 @@ public class ExploCoopBehaviour extends SimpleBehaviour {
 				}
 				
 				if (!finished) {
-					((AbstractDedaleAgent)this.myAgent).moveTo(nextNode);
+					int cpt=0;
+					while(((AbstractDedaleAgent)this.myAgent).moveTo(nextNode)==false && cpt<2) {
+						this.myAgent.doWait(500);
+						cpt++;
+					}
+					if (cpt==2) {
+						List<String> open_nodes=  this.myMap.getOpenNodes();
+						Random r= new Random();
+						int moveId=r.nextInt(open_nodes.size());
+						String node = open_nodes.get(moveId);
+						this.objectif = node;
+						System.out.println(this.myAgent.getName()+" Noeud inaccessible, choix d'un nouvel objectif: "+this.objectif);
+					}
+					
 				}
 				
 				ACLMessage msg1 = new ACLMessage(ACLMessage.INFORM);
 				msg1.setProtocol("REPERAGE");
 				msg1.setSender(this.myAgent.getAID());
-				/*if (this.myAgent.getLocalName().equals("Explo1")) {
-					msg1.addReceiver(new AID("Explo2",false));
-				}else {
-					msg1.addReceiver(new AID("Explo1",false));
-				}*/
+				
 				for (String agentName : this.list_agentNames) {
 					if (agentName!=this.myAgent.getLocalName()) {
 						msg1.addReceiver(new AID(agentName,AID.ISLOCALNAME));
@@ -179,11 +197,7 @@ public class ExploCoopBehaviour extends SimpleBehaviour {
 					ACLMessage msg2 = new ACLMessage(ACLMessage.INFORM);
 					msg2.setProtocol("REPERAGE");
 					msg2.setSender(this.myAgent.getAID());
-					/*if (this.myAgent.getLocalName().equals("Explo1")) {
-						msg2.addReceiver(new AID("Explo2",false));
-					}else {
-						msg2.addReceiver(new AID("Explo1",false));
-					}*/
+					
 					for (String agentName : this.list_agentNames) {
 						if (agentName!=this.myAgent.getLocalName()) {
 							msg2.addReceiver(new AID(agentName,AID.ISLOCALNAME));
@@ -193,8 +207,7 @@ public class ExploCoopBehaviour extends SimpleBehaviour {
 					((AbstractDedaleAgent)this.myAgent).sendMessage(msg2);
 					
 					System.out.println(this.myAgent.getLocalName() + ": " + msgReceived1.getContent() + " par " + msgReceived1.getSender().getLocalName());
-					this.myAgent.addBehaviour(new PartageMapBehaviour((ExploreCoopAgent) this.myAgent,this.myMap,msgReceived1.getSender(),this.list_agentNames));
-					//this.myAgent.addBehaviour(new ShareMapBehaviour(this.myAgent,500,this.myMap,this.list_agentNames));
+					this.myAgent.addBehaviour(new PartageMapBehaviour((ExploreCoopAgent) this.myAgent,this.myMap,msgReceived1.getSender(),this.list_agentNames,this.objectif,this.date));
 					System.out.println("Behaviour ajouté");
 					finished = true;
 					
@@ -221,7 +234,7 @@ public class ExploCoopBehaviour extends SimpleBehaviour {
 
 				//5) At each time step, the agent check if he received a graph from a teammate. 	
 				// If it was written properly, this sharing action should be in a dedicated behaviour set.
-				MessageTemplate msgTemplate=MessageTemplate.and(
+				/*MessageTemplate msgTemplate=MessageTemplate.and(
 						MessageTemplate.MatchProtocol("SHARE-TOPO"),
 						MessageTemplate.MatchPerformative(ACLMessage.INFORM));
 				ACLMessage msgReceived=this.myAgent.receive(msgTemplate);
@@ -234,19 +247,21 @@ public class ExploCoopBehaviour extends SimpleBehaviour {
 						e.printStackTrace();
 					}
 					this.myMap.mergeMap(sgreceived);
-				}
+				}*/
 				/*
 				if (!finished) {
 					((AbstractDedaleAgent)this.myAgent).moveTo(nextNode);
 				}*/
+				if (System.currentTimeMillis()-this.date>45000) {
+					finished =true;
+					this.myAgent.addBehaviour(new CollectBehaviour((ExploreCoopAgent) this.myAgent,this.myMap,this.list_agentNames,null,System.currentTimeMillis()));
+					System.out.println(this.myAgent.getLocalName()+" - Exploration temporairement arrêtée.");
+				}
 			}
 
 		}
 	}
 	
-	//public int onEnd() {return exitValue ;}
-
-
 	@Override
 	public boolean done() {
 		return finished;

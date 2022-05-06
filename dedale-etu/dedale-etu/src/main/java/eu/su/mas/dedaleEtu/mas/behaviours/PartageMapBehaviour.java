@@ -36,6 +36,8 @@ public class PartageMapBehaviour extends SimpleBehaviour {
 	private boolean finished = false;
 	private int envoie;
 	private int recu;
+	private String objectif;
+	private long debut_explo;
 
 	/**
 	 * The agent periodically share its map.
@@ -47,7 +49,7 @@ public class PartageMapBehaviour extends SimpleBehaviour {
 	 * @param mymap (the map to share)
 	 * @param receivers the list of agents to send the map to
 	 */
-	public PartageMapBehaviour(ExploreCoopAgent myagent,MapRepresentation mymap, AID receivers,List<String> agentNames) {
+	public PartageMapBehaviour(ExploreCoopAgent myagent,MapRepresentation mymap, AID receivers,List<String> agentNames,String objectif,long debut_explo) {
 		super();
 		this.myMap=mymap;
 		this.receivers=receivers;	
@@ -55,6 +57,9 @@ public class PartageMapBehaviour extends SimpleBehaviour {
 		this.agentNames = agentNames;
 		this.envoie = 0;
 		this.recu = 0;
+		this.objectif = objectif;
+		this.debut_explo= debut_explo;
+		System.out.println("Début de la communication entre "+myagent.getName()+" et "+receivers.getLocalName());
 	}
 
 	/**
@@ -67,10 +72,6 @@ public class PartageMapBehaviour extends SimpleBehaviour {
 
 	@Override
 	public void action() {
-		//4) At each time step, the agent blindly send all its graph to its surrounding to illustrate how to share its knowledge (the topology currently) with the the others agents. 	
-		// If it was written properly, this sharing action should be in a dedicated behaviour set, the receivers be automatically computed, and only a subgraph would be shared.
-		
-		
 		
 		ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
 		msg.setProtocol("SHARE-TOPO");
@@ -147,18 +148,19 @@ public class PartageMapBehaviour extends SimpleBehaviour {
 		ACLMessage msgReceived1=this.myAgent.receive(msgTemplate1);
 		if((msgReceived1 != null)) {
 			System.out.println(msgReceived1.getContent());
-			this.myAgent.addBehaviour(new ExploCoopBehaviour((ExploreCoopAgent)this.myAgent,this.myMap,this.agentNames));
+			this.myAgent.addBehaviour(new ExploCoopBehaviour((ExploreCoopAgent)this.myAgent,this.myMap,this.agentNames,this.objectif,this.debut_explo));
 			System.out.println(this.myAgent.getName() + " ACK reçu");
 			//this.myAgent.doWait(500);
 			while (this.myAgent.receive() != null) {
 				;
 			}
 			finished = true;
+			System.out.println("Fin de la communication de "+this.myAgent.getName());
 		}
 		else {
 			if (this.cpt>=5) {
-				this.myAgent.addBehaviour(new ExploCoopBehaviour((ExploreCoopAgent)this.myAgent,this.myMap,this.agentNames));
-				System.out.println(this.myAgent.getName() + " arret forcé");
+				this.myAgent.addBehaviour(new ExploCoopBehaviour((ExploreCoopAgent)this.myAgent,this.myMap,this.agentNames,this.objectif,this.debut_explo));
+				System.out.println("Arret forcé de la communication "+this.myAgent.getName());
 				//this.myAgent.doWait(500);
 				while (this.myAgent.receive() != null) {
 					;

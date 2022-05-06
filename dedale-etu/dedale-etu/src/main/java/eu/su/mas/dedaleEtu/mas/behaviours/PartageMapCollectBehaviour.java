@@ -37,6 +37,7 @@ public class PartageMapCollectBehaviour extends SimpleBehaviour {
 	private int envoie;
 	private int recu;
 	private String objectif;
+	private long debut_collecte;
 
 	/**
 	 * The agent periodically share its map.
@@ -48,7 +49,7 @@ public class PartageMapCollectBehaviour extends SimpleBehaviour {
 	 * @param mymap (the map to share)
 	 * @param receivers the list of agents to send the map to
 	 */
-	public PartageMapCollectBehaviour(ExploreCoopAgent myagent,MapRepresentation mymap, AID receivers,List<String> agentNames,String objectif) {
+	public PartageMapCollectBehaviour(ExploreCoopAgent myagent,MapRepresentation mymap, AID receivers,List<String> agentNames,String objectif, long debut_collecte) {
 		super();
 		this.myMap=mymap;
 		this.receivers=receivers;	
@@ -57,6 +58,8 @@ public class PartageMapCollectBehaviour extends SimpleBehaviour {
 		this.envoie = 0;
 		this.recu = 0;
 		this.objectif = objectif;
+		this.debut_collecte = debut_collecte;
+		System.out.println("Début de la communication entre "+myagent.getName()+" et "+receivers.getLocalName());
 	}
 
 	/**
@@ -149,18 +152,19 @@ public class PartageMapCollectBehaviour extends SimpleBehaviour {
 		ACLMessage msgReceived1=this.myAgent.receive(msgTemplate1);
 		if((msgReceived1 != null)) {
 			System.out.println(msgReceived1.getContent());
-			this.myAgent.addBehaviour(new CollectBehaviour((ExploreCoopAgent) this.myAgent,this.myMap,this.agentNames,this.objectif));
+			this.myAgent.addBehaviour(new CollectBehaviour((ExploreCoopAgent) this.myAgent,this.myMap,this.agentNames,this.objectif,this.debut_collecte));
 			System.out.println(this.myAgent.getName() + " ACK reçu");
 			//this.myAgent.doWait(500);
 			while (this.myAgent.receive() != null) {
 				;
 			}
 			finished = true;
+			System.out.println("Fin de la communication de "+this.myAgent.getName());
 		}
 		else {
 			if (this.cpt>=5) {
-				this.myAgent.addBehaviour(new ExploCoopBehaviour((ExploreCoopAgent)this.myAgent,this.myMap,this.agentNames));
-				System.out.println(this.myAgent.getName() + " arret forcé");
+				this.myAgent.addBehaviour(new CollectBehaviour((ExploreCoopAgent)this.myAgent,this.myMap,this.agentNames,this.objectif,this.debut_collecte));
+				System.out.println("Arret forcé de la communication "+this.myAgent.getName());
 				//this.myAgent.doWait(500);
 				while (this.myAgent.receive() != null) {
 					;
