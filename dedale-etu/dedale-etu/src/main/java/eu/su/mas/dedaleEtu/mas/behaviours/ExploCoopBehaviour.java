@@ -252,7 +252,7 @@ public class ExploCoopBehaviour extends SimpleBehaviour {
 				if (!finished) {
 					((AbstractDedaleAgent)this.myAgent).moveTo(nextNode);
 				}*/
-				if (System.currentTimeMillis()-this.date>45000) {
+				if (System.currentTimeMillis()-this.date>60000) {
 					finished =true;
 					this.myAgent.addBehaviour(new CollectBehaviour((ExploreCoopAgent) this.myAgent,this.myMap,this.list_agentNames,null,System.currentTimeMillis()));
 					System.out.println(this.myAgent.getLocalName()+" - Exploration temporairement arrêtée.");

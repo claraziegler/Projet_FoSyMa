@@ -131,28 +131,40 @@ public class CollectBehaviour extends SimpleBehaviour {
 		List<Couple<String,List<Couple<Observation,Integer>>>> lobs=((AbstractDedaleAgent)this.myAgent).observe();//myPosition
 		List<Couple<Observation,Integer>> lObservations= lobs.get(0).getRight();
 		boolean stench = false;
-		//for(Couple<Observation,Integer> o:lObservations){
-		if (lObservations.isEmpty()==false) {
-			switch (lObservations.get(0).getLeft()) {
+		int tresor = -1;
+		int j=0;
+		for(Couple<Observation,Integer> o:lObservations){
+		//if (lObservations.isEmpty()==false) {
+			switch (o.getLeft()) {
 			case DIAMOND:
-				 ((ExploreCoopAgent) myAgent).mise_a_jour(lObservations.get(0).getLeft(),myPosition,lObservations.get(0).getRight(),System.currentTimeMillis());
+				((ExploreCoopAgent) myAgent).mise_a_jour(o.getLeft(),myPosition,o.getRight(),System.currentTimeMillis());
+				tresor = j;
 				break;
 			case GOLD:
-				((ExploreCoopAgent) myAgent).mise_a_jour(lObservations.get(0).getLeft(),myPosition,lObservations.get(0).getRight(),System.currentTimeMillis());
+				((ExploreCoopAgent) myAgent).mise_a_jour(o.getLeft(),myPosition,o.getRight(),System.currentTimeMillis());
+				tresor = j;
 				break;
-			case STENCH:
-				stench = true;
+			}
+			j++;
+		}
+		
+		if (tresor==-1) {
+			for(Couple<Observation,Integer> o:lObservations){
+				switch (o.getLeft()) {
+				case STENCH:
+					stench = true;
+					break;
+				case LOCKSTATUS:
+					if (((ExploreCoopAgent) this.myAgent).quel_tresor(myPosition).equals("or")) {
+						((ExploreCoopAgent) myAgent).mise_a_jour(Observation.GOLD,myPosition,0,System.currentTimeMillis());
+					}
+					if (((ExploreCoopAgent) this.myAgent).quel_tresor(myPosition).equals("diamant")) {
+						((ExploreCoopAgent) myAgent).mise_a_jour(Observation.DIAMOND,myPosition,0,System.currentTimeMillis());
+					}
+					break;
+				default:
 				break;
-			case LOCKSTATUS:
-				if (((ExploreCoopAgent) this.myAgent).quel_tresor(myPosition).equals("or")) {
-					((ExploreCoopAgent) myAgent).mise_a_jour(Observation.GOLD,myPosition,0,System.currentTimeMillis());
 				}
-				if (((ExploreCoopAgent) this.myAgent).quel_tresor(myPosition).equals("diamant")) {
-					((ExploreCoopAgent) myAgent).mise_a_jour(Observation.DIAMOND,myPosition,0,System.currentTimeMillis());
-				}
-				break;
-			default:
-				break;
 			}
 		}
 		
@@ -161,13 +173,13 @@ public class CollectBehaviour extends SimpleBehaviour {
 		if(myPosition.equals(this.objectif)) {
 			//System.out.println(lObservations);
 			
-			if (lObservations.isEmpty()==false) {
+			if (lObservations.isEmpty()==false && tresor!=-1) {
 				if (stench==false) {
-					((AbstractDedaleAgent) this.myAgent).openLock(lObservations.get(0).getLeft());
+					((AbstractDedaleAgent) this.myAgent).openLock(lObservations.get(tresor).getLeft());
 				
 					int picked = ((AbstractDedaleAgent) this.myAgent).pick();
-					System.out.println(this.myAgent.getName()+" a ramassé "+picked+" "+lObservations.get(0).getLeft()+" sur la case "+ myPosition);
-					((ExploreCoopAgent) this.myAgent).mise_a_jour(lObservations.get(0).getLeft(),myPosition,lObservations.get(0).getRight()-picked,System.currentTimeMillis());
+					System.out.println(this.myAgent.getName()+" a ramassé "+picked+" "+lObservations.get(tresor).getLeft()+" sur la case "+ myPosition);
+					((ExploreCoopAgent) this.myAgent).mise_a_jour(lObservations.get(tresor).getLeft(),myPosition,lObservations.get(tresor).getRight()-picked,System.currentTimeMillis());
 			
 				}
 			}
@@ -236,7 +248,7 @@ public class CollectBehaviour extends SimpleBehaviour {
 			
 		}
 		
-		if (System.currentTimeMillis()-this.date>45000) {
+		if (System.currentTimeMillis()-this.date>60000) {
 			finished =true;
 			this.myAgent.addBehaviour(new ExploCoopBehaviour((ExploreCoopAgent) this.myAgent,this.myMap,this.agentNames,null,System.currentTimeMillis()));
 			System.out.println(this.myAgent.getLocalName()+" - Collecte arrêtée temporairement");
