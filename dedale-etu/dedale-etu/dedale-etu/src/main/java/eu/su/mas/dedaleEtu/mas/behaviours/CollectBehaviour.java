@@ -247,7 +247,7 @@ public class CollectBehaviour extends SimpleBehaviour {
 			
 		}
 		
-		if (System.currentTimeMillis()-this.date>60000) {
+		if (System.currentTimeMillis()-this.date>45000) {
 			finished =true;
 			this.myAgent.addBehaviour(new ExploCoopBehaviour((ExploreCoopAgent) this.myAgent,this.myMap,this.agentNames,null,System.currentTimeMillis()));
 			System.out.println(this.myAgent.getLocalName()+" - Collecte arrêtée temporairement");
