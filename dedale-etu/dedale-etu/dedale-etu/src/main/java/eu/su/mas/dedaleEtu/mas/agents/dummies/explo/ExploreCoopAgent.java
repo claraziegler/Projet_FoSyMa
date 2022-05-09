@@ -154,7 +154,7 @@ public class ExploreCoopAgent extends AbstractDedaleAgent {
 		List<Couple<Observation, Integer>> capacite = getBackPackFreeSpace();
 		if (capacite.size() > 1) {
 			if (capacite.get(0).getLeft() == Observation.GOLD) {
-				if (capacite.get(0).getRight() > capacite.get(1).getRight()) {
+				if (capacite.get(0).getRight() >= capacite.get(1).getRight()) {
 					type = "or";
 				}
 				else {
