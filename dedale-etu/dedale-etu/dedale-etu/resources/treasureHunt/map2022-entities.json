@@ -2,24 +2,24 @@
 { 
   "agentType":"agentCollect",
   "agentName": "A1",
-  "communicationRange": 2,
+  "communicationRange": 3,
   "initialLocation": "M30",
   "backPackCapacityGold": 20,
   "backPackCapacityDiamond":20, 
   "detectionRadius": 0,
-  "strengthExpertise": 100,
-  "lockPickingExpertise":100
+  "strengthExpertise": 1000,
+  "lockPickingExpertise":1000
   },
 { 
   "agentType":"agentCollect",
   "agentName": "A2",
-  "communicationRange": 2,
+  "communicationRange": 4,
   "initialLocation": "94",
   "backPackCapacityGold": 5,
   "backPackCapacityDiamond":30, 
   "detectionRadius": 0,
-  "strengthExpertise": 100,
-  "lockPickingExpertise":100
+  "strengthExpertise": 1000,
+  "lockPickingExpertise":1000
   },
 { 
   "agentType":"agentCollect",
@@ -29,19 +29,19 @@
   "backPackCapacityGold": 25,
   "backPackCapacityDiamond":10, 
   "detectionRadius": 0,
-  "strengthExpertise": 200,
-  "lockPickingExpertise":200
+  "strengthExpertise": 2000,
+  "lockPickingExpertise":2000
   },
 { 
   "agentType":"agentCollect",
   "agentName": "A4",
-  "communicationRange": 2,
+  "communicationRange": 3,
   "initialLocation": "M7",
   "backPackCapacityGold": 10,
   "backPackCapacityDiamond":40, 
   "detectionRadius": 0,
-  "strengthExpertise": 100,
-  "lockPickingExpertise":100
+  "strengthExpertise": 1000,
+  "lockPickingExpertise":1000
   },
 { 
   "agentType":"agentCollect",
@@ -51,8 +51,8 @@
   "backPackCapacityGold": 70,
   "backPackCapacityDiamond":100, 
   "detectionRadius": 0,
-  "strengthExpertise": 200,
-  "lockPickingExpertise":200
+  "strengthExpertise": 2000,
+  "lockPickingExpertise":2000
   },
 { 
   "agentType":"agentCollect",
@@ -62,8 +62,8 @@
   "backPackCapacityGold": 7,
   "backPackCapacityDiamond":30, 
   "detectionRadius": 0,
-  "strengthExpertise": 100,
-  "lockPickingExpertise":100
+  "strengthExpertise": 1000,
+  "lockPickingExpertise":1000
   },
 { 
   "agentType":"wumpus",
